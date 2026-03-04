@@ -1,5 +1,7 @@
 import { Search, Bell } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { OfferModal } from './components/OfferModal';
+import { ProductCard } from './components/ProductCard';
 
 function LazyVideo({ src }: { src: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -81,13 +83,20 @@ function LazyImage({ src, alt }: { src: string; alt: string }) {
 }
 
 function App() {
-  const handleCopyPix = () => {
-    navigator.clipboard.writeText('11954560171');
-    alert('Chave PIX copiada!');
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsModalOpen(true);
+    }, 6000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white">
+    <>
+      <OfferModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <div className="min-h-screen bg-[#1a1a1a] text-white">
       <div
         className="min-h-screen flex justify-center"
         style={{
@@ -162,16 +171,33 @@ function App() {
                   </div>
                 </dl>
 
-                <div className="flex flex-wrap gap-3 mt-4 w-full max-w-xl justify-center">
-                  <button
-                    onClick={handleCopyPix}
-                    className="flex-1 min-w-[180px] p-4 rounded-2xl border border-amber-500/30 bg-amber-500/15 hover:bg-amber-500/25 transition flex flex-col items-start gap-1"
-                  >
-                    <span className="flex items-center gap-2 font-semibold text-white">
-                      <span className="text-lg">🎁</span>Mimo
-                    </span>
-                    <small className="text-gray-300 font-medium">Copiar chave PIX</small>
-                  </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 w-full max-w-4xl">
+                  <ProductCard
+                    title="Conteúdo PRIVADO"
+                    price={14.90}
+                    oldPrice={97.00}
+                    discount="76% OFF"
+                    benefits={[
+                      { icon: 'video', text: '📹 Vídeos fazendo' },
+                      { icon: 'message', text: '💬 Vídeos longos 👀' },
+                      { icon: 'lock', text: '🔒 Presente surpresa 🎁' }
+                    ]}
+                    videoUrl="https://media-wordpress.kjufc9.easypanel.host/wp-content/uploads/2026/02/05.mp4"
+                    productName="Conteúdo PRIVADO"
+                  />
+                  <ProductCard
+                    title="Chamada de Vídeo"
+                    price={49.90}
+                    oldPrice={149.00}
+                    discount="66% OFF"
+                    benefits={[
+                      { icon: 'video', text: '📹 Chamada ao vivo' },
+                      { icon: 'message', text: '💬 Só eu e você' },
+                      { icon: 'lock', text: '🔒 15 minutos exclusivos' }
+                    ]}
+                    videoUrl="https://media-wordpress.kjufc9.easypanel.host/wp-content/uploads/2026/02/05.mp4"
+                    productName="Chamada de Vídeo"
+                  />
                 </div>
               </div>
             </section>
@@ -318,6 +344,7 @@ function App() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
