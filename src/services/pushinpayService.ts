@@ -16,24 +16,34 @@ export interface CheckPaymentResponse {
 
 export async function generatePixPayment(amount: number, productName: string): Promise<GeneratePixResponse> {
   try {
-    const response = await fetch(`${API_URL}/generate-pix`, {
+    const response = await fetch(`${API_URL}/pix/cash-in`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_TOKEN}`
+        'Authorization': `Bearer ${API_TOKEN}`,
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
-        amount,
-        productName,
-        timestamp: Date.now()
+        amount: Math.round(amount * 100),
+        description: productName,
+        reference: `ref_${Date.now()}`
       })
     });
 
     if (!response.ok) {
+      const errorData = await response.text();
+      console.error('Erro da API:', errorData);
       throw new Error('Erro ao gerar PIX');
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    return {
+      success: true,
+      pixCode: data.qrcode || data.brcode || data.pixCode || '',
+      transactionId: data.id || data.transactionId || '',
+      qrCode: data.qrcode_url || data.qrCode || ''
+    };
   } catch (error) {
     console.error('Erro ao gerar PIX:', error);
     throw error;
@@ -42,10 +52,11 @@ export async function generatePixPayment(amount: number, productName: string): P
 
 export async function checkPaymentStatus(transactionId: string): Promise<CheckPaymentResponse> {
   try {
-    const response = await fetch(`${API_URL}/check-payment/${transactionId}`, {
+    const response = await fetch(`${API_URL}/pix/cash-in/${transactionId}`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${API_TOKEN}`
+        'Authorization': `Bearer ${API_TOKEN}`,
+        'Accept': 'application/json'
       }
     });
 
@@ -53,7 +64,13 @@ export async function checkPaymentStatus(transactionId: string): Promise<CheckPa
       throw new Error('Erro ao verificar pagamento');
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    return {
+      success: true,
+      paid: data.status === 'paid' || data.status === 'completed',
+      transactionId: data.id || transactionId
+    };
   } catch (error) {
     console.error('Erro ao verificar pagamento:', error);
     throw error;
